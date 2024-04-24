@@ -38,7 +38,7 @@ def cut_video(path_to_video, start, duration):
     output = path_to_video.replace("downloaded", "edited")
     start = seconds_to_timestamp(start)
     duration = seconds_to_timestamp(duration)
-    command = f"ffmpeg -i {path_to_video} -ss {start} -t {duration} -c:a copy {output}"
+    command = f"ffmpeg -i {path_to_video} -ar 32000 -ss {start} -t {duration} -c:a copy {output}"
     os.system(command=command)
     converted_video = mp4_to_mp3(output)
     os.remove(output)
@@ -54,19 +54,17 @@ def download_and_cut_video(youtube_id, start):
     return edited_video
 
 def write_video_to_jsonl(jsonl_file_path, path):
-    line = '{"path": "' + path + '", "duration": 10, "sample_rate": 48000, "amplitude": null, "weight": null, "info_path": null}\n'
+    line = '{"path": "' + path + '", "duration": 10, "sample_rate": 32000, "amplitude": null, "weight": null, "info_path": null}\n'
     with open(jsonl_file_path, 'a', encoding='utf8') as outfile:
         outfile.write(line)
         outfile.close()
 
 def write_json_meta_data(youtube_id, dataset):
-    template = {"key": "", "artist": "", "sample_rate": 48000, "file_extension": "mp3", "description": "", 
+    template = {"key": "", "artist": "", "sample_rate": 32000, "file_extension": "mp3", "description": "", 
                 "keywords": "", "duration": 10.0, "bpm": "", "genre": "", "title": "Enracinement", 
                 "name": "", "instrument": "", "moods": []}    
     row = dataset.loc[dataset['ytid'] == youtube_id]
-    print(row.loc[:,'caption'].iloc[0])
     template["description"] = row.loc[:, 'caption'].iloc[0]
-    print(template["description"])
     template["name"] = youtube_id
     template["title"] = youtube_id
     template["keywords"] = row.loc[:, 'aspect_list'].iloc[0]
@@ -78,7 +76,7 @@ def write_json_meta_data(youtube_id, dataset):
 
 def main():
     dataset = pd.read_csv("musiccaps-public.csv")
-    number_of_videos_to_download = 100
+    number_of_videos_to_download = 10
     number_of_failed_downloads = 0
     for i in range(0,number_of_videos_to_download+1):
         print(f"Downloading video {i}/{number_of_videos_to_download}")
